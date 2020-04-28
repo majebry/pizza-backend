@@ -42,7 +42,10 @@ class OrderController extends Controller
         $client->save();
 
         // create the order
-        $order = $client->orders()->create();
+        $order = $client->orders()->create([
+            'delivery_cost' => config('app_settings.delivery_cost'),
+            'currency' => $request->currency
+        ]);
 
         foreach ($request->cart_items as $item) {
             $pizza = Pizza::findOrFail($item['pizzaId']);
@@ -51,7 +54,6 @@ class OrderController extends Controller
             $order->items()->save(new OrderItem([
                 'pizza_id'   => $item['pizzaId'],
                 'sold_price' => $pizzaPrice,
-                'currency'   => $request->currency,
                 'quantity'   => $item['quantity']
             ]));
         }
