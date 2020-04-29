@@ -13,7 +13,7 @@ class Pizza extends Model
 
     public function getImageLinkAttribute()
     {
-        return url(Storage::url($this->image_path));
+        return secure_url('images/' . $this->image_path);
     }
 
     public function getPriceInUsdAttribute()
