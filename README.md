@@ -63,3 +63,20 @@ php artisan storage:link
 You can login as an admin (in order to view the order history) with the following credentials
 - Username: `admin@example.test`
 - Password: `password`
+
+## Tests
+
+Before you run the tests, duplicate your `.env` file to `.env.testing`
+
+Update the following values in `.env.testing`
+
+```
+DB_CONNECTION=sqlite
+DB_DATABASE=:memory:
+```
+
+Now you can run the tests:
+
+```
+./vendor/bin/phpunit
+```
