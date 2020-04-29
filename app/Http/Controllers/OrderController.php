@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Order;
 use App\Pizza;
 use App\Client;
 use App\OrderItem;
@@ -13,17 +14,47 @@ class OrderController extends Controller
     /**
      * Display a listing of the resource.
      *
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
-    public function index()
+    public function index(Request $request)
     {
-        //
+        $orders = Order::with(['client', 'items'])->latest();
+
+        // filter with client name when given
+        $orders->when($request->client_name, function ($query) use ($request) {
+            $query->whereHas('client', function ($clientQuery) use ($request) {
+                $clientQuery->where('name', 'LIKE', "%{$request->client_name}%");
+            });
+        });
+
+        // filter with client phone when given
+        $orders->when($request->client_phone, function ($query) use ($request) {
+            $query->whereHas('client', function ($clientQuery) use ($request) {
+                $clientQuery->where('phone', 'LIKE', "%{$request->client_phone}%");
+            });
+        });
+
+        $response = $orders->paginate();
+
+        $response->getCollection()->transform(function ($order) {
+            return [
+                'id'                =>  $order->id,
+                'client_name'       =>  $order->client->name,
+                'client_address'    =>  $order->client->address,
+                'client_phone'      =>  $order->client->phone,
+                'total_price'       =>  $order->total_price,
+                'currency'          =>  $order->currency,
+                'created_at'        =>  $order->created_at->diffForHumans()
+            ];
+        });
+
+        return response()->json($response);
     }
 
     /**
      * Store a newly created resource in storage.
      *
-     * @param  \Illuminate\Http\Request  $request
+     * @param  \App\Http\Requests\StoreOrderRequest  $request
      * @return \Illuminate\Http\JsonResponse
      */
     public function store(StoreOrderRequest $request)
@@ -58,17 +89,19 @@ class OrderController extends Controller
             ]));
         }
 
-        return response()->json($order->load('items'));
+        return response()->json($order->load('items'), 201);
     }
 
     /**
      * Display the specified resource.
      *
      * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @return \Illuminate\Http\JsonResponse
      */
     public function show($id)
     {
-        //
+        return response()->json(
+            Order::with('client', 'items.pizza')->findOrFail($id)
+        );
     }
 }
