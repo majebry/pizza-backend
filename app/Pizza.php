@@ -13,7 +13,13 @@ class Pizza extends Model
 
     public function getImageLinkAttribute()
     {
-        return secure_url('images/' . $this->image_path);
+        $imagePath = 'images/' . $this->image_path;
+
+        if (request()->secure()) {
+            return secure_url($imagePath);
+        }
+
+        return url($imagePath);
     }
 
     public function getPriceInUsdAttribute()
