@@ -27,8 +27,9 @@ class Order extends Model
 
     public function getTotalPriceAttribute()
     {
-        return $this->items()->sum(DB::raw('sold_price * quantity'))
-            + $this->delivery_cost;
+        $itemsTotalPrice = $this->items()->sum(DB::raw('sold_price * quantity'));
+
+        return number_format($itemsTotalPrice + $this->delivery_cost, 2);
     }
 
     public function getCreatedAtStringAttribute()
